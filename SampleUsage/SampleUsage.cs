@@ -29,13 +29,16 @@ namespace SQLiteEnabled.SampleUsage
             List<Person> People = SQLiteEnabled.RetreiveFromDataBase(SQLiteConnection, typeof(Person)).ConvertAll<Person>(p => Person.FromDynamicConverter(p));
                 
             // Creat a bunch of random new people.
-            for (int i = 0; i < 1000; i++)
+            if (People.Count == 0)
             {
-                var NewGuy = new Person();
-                NewGuy.FirstName = "John";
-                NewGuy.LastName = "Doe";
-                NewGuy.Age = i;
-                People.Add(NewGuy);
+                for (int i = 0; i < 1000; i++)
+                {
+                    var NewGuy = new Person();
+                    NewGuy.FirstName = "John";
+                    NewGuy.LastName = "Doe";
+                    NewGuy.Age = i;
+                    People.Add(NewGuy);
+                }
             }
 
             // Commit the changes. 

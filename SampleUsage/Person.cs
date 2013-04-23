@@ -42,6 +42,8 @@ namespace SQLiteEnabled.SampleUsage
         public static Person FromDynamicConverter(dynamic dynamicPerson)
         {
             Person Returned = new Person();
+            Returned.ID = dynamicPerson.ID;
+            Returned.RetreivedValue = dynamicPerson.RetreivedValue;
             Returned.FirstName = dynamicPerson.FirstName;
             Returned.LastName = dynamicPerson.LastName;
             Returned.Age = dynamicPerson.Age;

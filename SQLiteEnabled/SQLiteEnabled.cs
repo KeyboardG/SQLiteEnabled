@@ -29,6 +29,15 @@
         }
 
 
+        // Contains the values of the fields as retreived from the database.
+        private byte[] retreivedValue;
+        public byte[] RetreivedValue
+        {
+            get { return retreivedValue; }
+            set { retreivedValue = value; }
+        }
+
+
         // Override in subclasses to map additional fields.
         public static SQLiteEnabled DynamicConverter(dynamic dynamicSQLiteEnabled)
         {
@@ -140,8 +149,13 @@
                     var PropertyNameToMap = ThisMember.Name;
                     var PropertyToMap = sqliteEnabledType.GetProperty(PropertyNameToMap);
 
+                    if (PropertyNameToMap == "RetreivedValue") { continue; }
+
                     PropertyToMap.SetValue(ObjectToAdd, SQLiteReader[PropertyNameToMap]);   // Set the looked up property on the dynamic object.
                 }
+
+
+                ObjectToAdd.RetreivedValue = ObjectToAdd.ComputeByteArrayValue();
 
                 ResultList.Add(ObjectToAdd);
             }
@@ -176,7 +190,11 @@
                 }
                 else
                 {
-                    UpdateObject(sqliteConnection, ThisObject, sqliteEnabledType);
+                    // Only update is the object has changed.
+                    if (ThisObject.RetreivedValue != ThisObject.ComputeByteArrayValue())
+                    {
+                        UpdateObject(sqliteConnection, ThisObject, sqliteEnabledType);
+                    }
                 }
             }
 
@@ -291,6 +309,51 @@
         }
 
 
+        /// <summary>
+        /// Function computes all the fields contained in the SQLiteEnabled object to a single byte array which can be stored and compared
+        /// later to check if the object has been modified.
+        /// </summary>
+        /// <returns>A byte array containing the values from all the fields on the object.</returns>
+        private byte[] ComputeByteArrayValue()
+        {
+            var ComputedValue = new List<byte>();
+
+            foreach (var ThisMember in this.GetType().GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
+            {
+                string ThisPropertyType = ThisMember.ToString().Split(' ')[0].ToUpper();
+                string ThisPropertyName = ThisMember.Name;
+
+                if (ThisPropertyType.Contains("INT") || ThisPropertyType.Contains("DEC") || ThisPropertyType.Contains("DOUBLE"))
+                {
+                    if (ThisPropertyType.Contains("INT"))
+                    {
+                        // 64-bit intetegers map to long.
+                        long Value = (long)(this.GetType().GetProperty(ThisPropertyName).GetValue(this));
+                        ComputedValue.AddRange(BitConverter.GetBytes(Value).ToList());
+                    }else{
+                        Double Value = (double)(this.GetType().GetProperty(ThisPropertyName).GetValue(this));
+                        ComputedValue.AddRange(BitConverter.GetBytes(Value).ToList());
+                    }
+                }
+                else if (ThisPropertyType.Contains("STRING") || ThisPropertyType.Contains("CHAR"))
+                {
+                    foreach (char c in this.GetType().GetProperty(ThisPropertyName).GetValue(this).ToString().ToCharArray())
+                    {
+                        ComputedValue.AddRange(BitConverter.GetBytes(c).ToList());
+                    }
+                }
+                else if (ThisPropertyType.Contains("DATE"))
+                {
+                    DateTime Value = (DateTime)(this.GetType().GetProperty(ThisPropertyName).GetValue(this));
+
+                    ComputedValue.AddRange(BitConverter.GetBytes(Value.Year).ToList());
+                    ComputedValue.AddRange(BitConverter.GetBytes(Value.Month).ToList());
+                    ComputedValue.AddRange(BitConverter.GetBytes(Value.Day).ToList());
+                }
+            }
+
+            return ComputedValue.ToArray();
+        }
 
     
 
