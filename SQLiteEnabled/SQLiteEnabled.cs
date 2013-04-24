@@ -31,6 +31,8 @@
 
         // Contains the values of the fields as retreived from the database.
         private byte[] retreivedValue;
+
+        [SQLiteEnabledSerialization(false)]
         public byte[] RetreivedValue
         {
             get { return retreivedValue; }
@@ -83,6 +85,8 @@
 
             foreach (var ThisMember in sqliteEnabledType.GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
             {
+                if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
+                
                 string ThisPropertyType = ThisMember.ToString().Split(' ')[0].ToUpper();
 
                 // This type mapping relies on the fact that SQLite actually has only a couple actual data types that are mapped.
@@ -146,17 +150,14 @@
                 dynamic ObjectToAdd = Activator.CreateInstance(sqliteEnabledType);
                 foreach (var ThisMember in sqliteEnabledType.GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
                 {
+                    if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
                     var PropertyNameToMap = ThisMember.Name;
                     var PropertyToMap = sqliteEnabledType.GetProperty(PropertyNameToMap);
-
-                    if (PropertyNameToMap == "RetreivedValue") { continue; }
 
                     PropertyToMap.SetValue(ObjectToAdd, SQLiteReader[PropertyNameToMap]);   // Set the looked up property on the dynamic object.
                 }
 
-
                 ObjectToAdd.RetreivedValue = ObjectToAdd.ComputeByteArrayValue();
-
                 ResultList.Add(ObjectToAdd);
             }
 
@@ -191,7 +192,7 @@
                 else
                 {
                     // Only update is the object has changed.
-                    if (ThisObject.RetreivedValue != ThisObject.ComputeByteArrayValue())
+                    if (!Enumerable.SequenceEqual<byte>(ThisObject.RetreivedValue, ThisObject.ComputeByteArrayValue()))
                     {
                         UpdateObject(sqliteConnection, ThisObject, sqliteEnabledType);
                     }
@@ -210,7 +211,7 @@
         /// <param name="sqliteConnection">The SQLiteConnection object which points to the SQLite database.</param>
         /// <param name="sqliteEnabledObject">The SQLiteEnabled object to insert.</param>
         /// <param name="sqliteEnabledType">The type of SQLiteEnabled object.</param>
-        /// <returns></returns>
+        /// <returns>True on success or throws on exception.</returns>
         public static bool InsertObject(SQLiteConnection sqliteConnection, dynamic sqliteEnabledObject, Type sqliteEnabledType)
         {
             var InsertCommand = sqliteConnection.CreateCommand();
@@ -219,6 +220,8 @@
             foreach (var ThisMember in sqliteEnabledType.GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
             {
                 if (ThisMember.Name == "ID") { continue; }
+                if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
+
                 string ThisPropertyName = ThisMember.Name;
 
                 InsertCommand.CommandText += ThisPropertyName + ", ";
@@ -228,6 +231,8 @@
             foreach (var ThisMember in sqliteEnabledType.GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
             {
                 if (ThisMember.Name == "ID") { continue; }
+                if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
+
                 string ThisPropertyType = ThisMember.ToString().Split(' ')[0].ToUpper();
                 string ThisPropertyName = ThisMember.Name;
 
@@ -268,6 +273,13 @@
         }
 
 
+        /// <summary>
+        /// Updates sqliteEnabledObject in the database indicated by sqliteConnection.
+        /// </summary>
+        /// <param name="sqliteConnection">The SQLiteConnection object which points to the SQLite database.</param>
+        /// <param name="sqliteEnabledObject">The SQLiteEnabled object to update.</param>
+        /// <param name="sqliteEnabledType">The type of SQLiteEnabled object.</param>
+        /// <returns>True on success or throws on exception.</returns>
         public static bool UpdateObject(SQLiteConnection sqliteConnection, dynamic sqliteEnabledObject, Type sqliteEnabledType)
         {
             var UpdateCommand = sqliteConnection.CreateCommand();
@@ -277,6 +289,7 @@
             foreach (var ThisMember in sqliteEnabledType.GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
             {
                 if (ThisMember.Name == "ID") { continue; }
+                if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
                 string ThisPropertyType = ThisMember.ToString().Split(' ')[0].ToUpper();
                 string ThisPropertyName = ThisMember.Name;
 
@@ -320,6 +333,8 @@
 
             foreach (var ThisMember in this.GetType().GetMembers().Where(m => m.MemberType == System.Reflection.MemberTypes.Property).ToList())
             {
+                if (!IsPropertySQLiteEnabledSerialized(ThisMember)) { continue; }
+
                 string ThisPropertyType = ThisMember.ToString().Split(' ')[0].ToUpper();
                 string ThisPropertyName = ThisMember.Name;
 
@@ -355,11 +370,21 @@
             return ComputedValue.ToArray();
         }
 
-    
 
+        /// <summary>
+        /// Function determines if a property in a SQLiteEnabled object is set to be serialized into the database.
+        /// </summary>
+        /// <param name="ThisMember">A property on a SQLiteEnabled object.</param>
+        /// <returns>False if the property has the attribute SQLiteEnabledSerialization with Serialize set to false.</returns>
+        private static bool IsPropertySQLiteEnabledSerialized(System.Reflection.MemberInfo ThisMember)
+        {
+            System.Attribute SerializeAttribute = System.Attribute.GetCustomAttribute(ThisMember, typeof(SQLiteEnabledSerialization));
+            if (SerializeAttribute != null && ((SQLiteEnabledSerialization)SerializeAttribute).Serialize == false)
+            {
+                return false;
+            }
 
-
-
-
+            return true;
+        }
     }
 }
