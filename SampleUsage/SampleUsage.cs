@@ -28,9 +28,9 @@ namespace SQLiteEnabled.SampleUsage
             // See .ConvertAll<> is what converts from the dynamic to the strongly typed object.
             List<Person> People = SQLiteEnabled.RetreiveFromDataBase(SQLiteConnection, typeof(Person)).ConvertAll<Person>(p => Person.FromDynamicConverter(p));
                 
-            // Creat a bunch of random new people.
             if (People.Count == 0)
             {
+                // If no people exists, then create a bunch of random new people.
                 for (int i = 0; i < 1000; i++)
                 {
                     var NewGuy = new Person();
@@ -38,6 +38,14 @@ namespace SQLiteEnabled.SampleUsage
                     NewGuy.LastName = "Doe";
                     NewGuy.Age = i;
                     People.Add(NewGuy);
+                }
+            }
+            else
+            {
+                // Edit every other person so test dirty checking within the commit function.
+                foreach (var ThisGuy in People.Where(p => p.ID % 2 == 0))
+                {
+                    ThisGuy.Age++;
                 }
             }
 
