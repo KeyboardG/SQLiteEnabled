@@ -24,7 +24,7 @@ namespace SQLiteEnabled.SampleUsage
                 Console.WriteLine(SQLiteEnabled.CreateSQLiteTable(SQLiteConnection, typeof(Person)));
             }
 
-            // Retreive any existing people.
+            // Retrieve any existing people.
             // See .ConvertAll<> is what converts from the dynamic to the strongly typed object.
             List<Person> People = SQLiteEnabled.RetreiveFromDataBase(SQLiteConnection, typeof(Person)).ConvertAll<Person>(p => Person.FromDynamicConverter(p));
                 
@@ -37,6 +37,8 @@ namespace SQLiteEnabled.SampleUsage
                     NewGuy.FirstName = "John";
                     NewGuy.LastName = "Doe";
                     NewGuy.Age = i;
+                    NewGuy.IsAlive = true;
+
                     People.Add(NewGuy);
                 }
             }

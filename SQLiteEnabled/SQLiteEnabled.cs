@@ -29,7 +29,7 @@
         }
 
 
-        // Contains the values of the fields as retreived from the database.
+        // Contains the values of the fields as retrieved from the database.
         private byte[] retreivedValue;
 
         [SQLiteEnabledSerialization(false)]
@@ -114,6 +114,10 @@
                 {
                     CreateCommandText += "DATETIME";
                 }
+                else if (ThisPropertyType.Contains("BOOLEAN"))
+                {
+                    CreateCommandText += "BOOLEAN";
+                }
 
                 CreateCommandText += ", ";
             }
@@ -170,7 +174,7 @@
         /// </summary>
         /// <param name="sqliteConnection">The SQLiteConnection object which points to the SQLite database.</param>
         /// <param name="dataSet">List of SQLiteEnabled objects to commit to the database.</param>
-        /// <param name="sqliteEnabledType">Type of objects contained withing dataSet.</param>
+        /// <param name="sqliteEnabledType">Type of objects contained within dataSet.</param>
         /// <returns>True upon completion.</returns>
         public static bool CommitData(SQLiteConnection sqliteConnection, List<dynamic> dataSet, Type sqliteEnabledType)
         {
@@ -246,6 +250,10 @@
                     // Character and DateTime types get wrapped in quotes.
                     InsertCommand.CommandText += "'" + sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString() + "'";
                 }
+                else if (ThisPropertyType.Contains("BOOLEAN"))
+                {
+                    InsertCommand.CommandText += sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject) ? "1" : "0";
+                }
 
                 InsertCommand.CommandText += ", ";
             }
@@ -255,7 +263,7 @@
             // Execute update or insert.
             if (0 > InsertCommand.ExecuteNonQuery())
             {
-                throw new Exception("Error commiting data");
+                throw new Exception("Error committing data");
             }
 
             // Read back inserted id.
@@ -294,7 +302,7 @@
                 string ThisPropertyName = ThisMember.Name;
 
                 UpdateCommand.CommandText += ThisPropertyName + "=";
-   
+
                 if (ThisPropertyType.Contains("INT") || ThisPropertyType.Contains("DEC") || ThisPropertyType.Contains("DOUBLE"))
                 {
                     // Numeric types can put into the command.
@@ -304,6 +312,11 @@
                 {
                     // Character and DateTime types get wrapped in quotes.
                     UpdateCommand.CommandText += "'" + sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString() + "'";
+                }
+                else if (ThisPropertyType.Contains("BOOLEAN"))
+                {
+                    // Boolean
+                    UpdateCommand.CommandText += sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject) ? "1" : "0";
                 }
 
                 UpdateCommand.CommandText += ", ";
@@ -315,7 +328,7 @@
             // Execute update or insert.
             if (0 > UpdateCommand.ExecuteNonQuery())
             {
-                throw new Exception("Error commiting data");
+                throw new Exception("Error committing data");
             }
             
             return true;
@@ -342,7 +355,7 @@
                 {
                     if (ThisPropertyType.Contains("INT"))
                     {
-                        // 64-bit intetegers map to long.
+                        // 64-bit integers map to long.
                         long Value = (long)(this.GetType().GetProperty(ThisPropertyName).GetValue(this));
                         ComputedValue.AddRange(BitConverter.GetBytes(Value).ToList());
                     }else{
@@ -364,6 +377,12 @@
                     ComputedValue.AddRange(BitConverter.GetBytes(Value.Year).ToList());
                     ComputedValue.AddRange(BitConverter.GetBytes(Value.Month).ToList());
                     ComputedValue.AddRange(BitConverter.GetBytes(Value.Day).ToList());
+                }
+                else if (ThisPropertyType.Contains("BOOLEAN"))
+                {
+                    bool Value = (bool)(this.GetType().GetProperty(ThisPropertyName).GetValue(this));
+
+                    ComputedValue.AddRange(BitConverter.GetBytes(Value));
                 }
             }
 

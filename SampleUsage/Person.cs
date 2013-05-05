@@ -30,6 +30,13 @@ namespace SQLiteEnabled.SampleUsage
             set { age = value; }
         }
 
+        private bool isAlive;
+        public bool IsAlive
+        {
+            get { return isAlive; }
+            set { isAlive = value; }
+        }
+
 
         // SQLite Functions ------------------------------
 
@@ -37,7 +44,7 @@ namespace SQLiteEnabled.SampleUsage
         /// Function simply converts a dynamic of a Person object into a strongly typed version.
         /// NOTE: Look into building this into the SQLiteEnabled base class using the Activator.CreateInstance().
         /// </summary>
-        /// <param name="dynamicPerson">A person object retreived from the SQLite database</param>
+        /// <param name="dynamicPerson">A person object retrieved from the SQLite database</param>
         /// <returns>Strongly typed version of the Person object</returns>
         public static Person FromDynamicConverter(dynamic dynamicPerson)
         {
@@ -47,6 +54,7 @@ namespace SQLiteEnabled.SampleUsage
             Returned.FirstName = dynamicPerson.FirstName;
             Returned.LastName = dynamicPerson.LastName;
             Returned.Age = dynamicPerson.Age;
+            Returned.IsAlive = dynamicPerson.IsAlive;
             
             return Returned;
         }
