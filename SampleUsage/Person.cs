@@ -61,6 +61,7 @@ namespace SQLiteEnabled.SampleUsage
             Returned.RetreivedValue = dynamicPerson.RetreivedValue;
             Returned.FirstName = dynamicPerson.FirstName;
             Returned.LastName = dynamicPerson.LastName;
+            Returned.DateOfBirth = dynamicPerson.DateOfBirth;
             Returned.Age = dynamicPerson.Age;
             Returned.IsAlive = dynamicPerson.IsAlive;
             

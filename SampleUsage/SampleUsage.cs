@@ -48,11 +48,11 @@ namespace SQLiteEnabled.SampleUsage
                 // Edit every other person so test dirty checking within the commit function.
                 foreach (var ThisGuy in People.Where(p => p.ID % 2 == 0))
                 {
+                    ThisGuy.DateOfBirth = ThisGuy.DateOfBirth.AddYears(1);
                     ThisGuy.Age++;
                 }
             }
 
-            
             // Commit the changes. 
             // Still a little ugly glue to convert from the strongly typed list to dynamic.
             // What I don't like about dynamic in .Net 4.5 is that you can pass a strongly typed object to a function's dynamic parameter,

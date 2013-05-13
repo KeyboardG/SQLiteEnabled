@@ -245,10 +245,16 @@
                     // Numeric types can put into the command.
                     InsertCommand.CommandText += sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString();
                 }
-                else if (ThisPropertyType.Contains("STRING") || ThisPropertyType.Contains("CHAR") || (ThisPropertyType.Contains("DATE")))
+                else if (ThisPropertyType.Contains("STRING") || ThisPropertyType.Contains("CHAR"))
                 {
                     // Character and DateTime types get wrapped in quotes.
                     InsertCommand.CommandText += "'" + sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString() + "'";
+                }
+                else if (ThisPropertyType.Contains("DATE"))
+                {
+                    // DateTime types must be parsed by SQLite properly.
+                    var DateValue = sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).GetDateTimeFormats('s')[0];
+                    InsertCommand.CommandText += "DateTime('" + DateValue + "')";
                 }
                 else if (ThisPropertyType.Contains("BOOLEAN"))
                 {
@@ -308,10 +314,16 @@
                     // Numeric types can put into the command.
                     UpdateCommand.CommandText += sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString();
                 }
-                else if (ThisPropertyType.Contains("STRING") || ThisPropertyType.Contains("CHAR") || (ThisPropertyType.Contains("DATE")))
+                else if (ThisPropertyType.Contains("STRING") || ThisPropertyType.Contains("CHAR"))
                 {
                     // Character and DateTime types get wrapped in quotes.
                     UpdateCommand.CommandText += "'" + sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).ToString() + "'";
+                }
+                else if (ThisPropertyType.Contains("DATE"))
+                {
+                                        // DateTime types must be parsed by SQLite properly.
+                    var DateValue = sqliteEnabledType.GetProperty(ThisPropertyName).GetValue(sqliteEnabledObject).GetDateTimeFormats('s')[0];
+                    UpdateCommand.CommandText += "DateTime('" + DateValue + "')";
                 }
                 else if (ThisPropertyType.Contains("BOOLEAN"))
                 {
