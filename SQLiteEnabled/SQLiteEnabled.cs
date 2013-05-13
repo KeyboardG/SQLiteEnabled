@@ -336,6 +336,32 @@
 
 
         /// <summary>
+        /// Updates sqliteEnabledObject in the database indicated by sqliteConnection.
+        /// </summary>
+        /// <param name="sqliteConnection">The SQLiteConnection object which points to the SQLite database.</param>
+        /// <param name="sqliteEnabledObject">The SQLiteEnabled object to update.</param>
+        /// <param name="sqliteEnabledType">The type of SQLiteEnabled object.</param>
+        /// <returns>True on success or throws on exception.</returns>
+        public static bool DeleteObject(SQLiteConnection sqliteConnection, dynamic sqliteEnabledObject, Type sqliteEnabledType)
+        {
+            // Will only work with classes that are sqliteEnabledType.
+            if (sqliteEnabledType.BaseType != typeof(SQLiteEnabled)) { return false; }
+
+            var DeleteCommand = sqliteConnection.CreateCommand();
+            if (sqliteEnabledObject.ID != 0)
+            {
+                DeleteCommand.CommandText = "DELETE FROM " + sqliteEnabledType.Name + " WHERE ID = " + sqliteEnabledObject.ID.ToString();
+                // Execute update or insert.
+                if (0 > DeleteCommand.ExecuteNonQuery())
+                {
+                    throw new Exception("Error committing data");
+                }
+            }
+            return true;
+        }
+
+
+        /// <summary>
         /// Function computes all the fields contained in the SQLiteEnabled object to a single byte array which can be stored and compared
         /// later to check if the object has been modified.
         /// </summary>

@@ -36,6 +36,7 @@ namespace SQLiteEnabled.SampleUsage
                     var NewGuy = new Person();
                     NewGuy.FirstName = "John";
                     NewGuy.LastName = "Doe";
+                    NewGuy.DateOfBirth = DateTime.Now.AddYears(0 - i);
                     NewGuy.Age = i;
                     NewGuy.IsAlive = true;
 
@@ -51,6 +52,7 @@ namespace SQLiteEnabled.SampleUsage
                 }
             }
 
+            
             // Commit the changes. 
             // Still a little ugly glue to convert from the strongly typed list to dynamic.
             // What I don't like about dynamic in .Net 4.5 is that you can pass a strongly typed object to a function's dynamic parameter,

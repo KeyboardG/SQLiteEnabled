@@ -23,6 +23,14 @@ namespace SQLiteEnabled.SampleUsage
             set { lastName = value; }
         }
 
+        private DateTime dateOfBirth;
+        public DateTime DateOfBirth
+        {
+            get { return dateOfBirth; }
+            set { dateOfBirth = value; }
+        }
+
+
         private Int64 age;  // Note that Int64 is required to map to a 64-bit SQLite Int.
         public Int64 Age
         {
